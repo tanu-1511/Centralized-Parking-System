@@ -31,3 +31,18 @@ class ParkingSlot(db.Model):
         "ParkingFloor",
         back_populates="slots"
     )
+
+    reservations = db.relationship(
+        "Reservation",
+        back_populates="slot"
+    )
+
+    parking_sessions = db.relationship(
+        "ParkingSession",
+        back_populates="slot"
+    )
+
+    occupancy_events = db.relationship(
+        "OccupancyEvent",
+        back_populates="slot"
+    )
