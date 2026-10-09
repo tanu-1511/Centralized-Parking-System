@@ -10,9 +10,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "mysql+pymysql://root:YOUR_PASSWORD@localhost/parking_system"
-    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///parking.db"
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
