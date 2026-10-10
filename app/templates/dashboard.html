@@ -13,6 +13,7 @@
     <p>Signed in as <strong>{{ user.username }}</strong> ({{ user.role }}).</p>
 
     <p><a href="{{ url_for('vehicles.list_vehicles') }}">My vehicles</a></p>
+    <p><a href="{{ url_for('reservations.new_reservation') }}">Book a slot</a> &middot; <a href="{{ url_for('reservations.my_reservations') }}">My reservations</a></p>
     <p><a href="{{ url_for('facilities.list_facilities') }}">Parking facilities</a></p>
 
     {% if user.role == 'admin' %}

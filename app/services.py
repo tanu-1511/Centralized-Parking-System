@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from app import db
 from app.models import ParkingSession, Reservation
 
 STATE_AVAILABLE = "available"
@@ -9,7 +10,9 @@ STATE_UNAVAILABLE = "unavailable"
 
 SLOT_ACTIVE = "active"
 SESSION_ACTIVE = "active"
-RESERVATION_BLOCKING_STATUSES = ("confirmed", "active")
+RESERVATION_CONFIRMED = "confirmed"
+RESERVATION_CANCELLED = "cancelled"
+RESERVATION_BLOCKING_STATUSES = (RESERVATION_CONFIRMED, "active")
 
 
 def slot_states(slots, now=None):
@@ -53,3 +56,16 @@ def slot_states(slots, now=None):
         else:
             states[slot.slot_id] = STATE_AVAILABLE
     return states
+
+
+def has_conflict(slot_id, start, end):
+    """True if an active reservation on this slot overlaps [start, end).
+
+    Back-to-back bookings (one ends exactly when the next starts) do not overlap.
+    """
+    return Reservation.query.filter(
+        Reservation.slot_id == slot_id,
+        Reservation.status.in_(RESERVATION_BLOCKING_STATUSES),
+        Reservation.start_time < end,
+        Reservation.end_time > start,
+    ).first() is not None
