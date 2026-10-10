@@ -5,11 +5,48 @@
 
 {% if not vehicles %}
 <p>You need to <a href="{{ url_for('vehicles.list_vehicles') }}">register a vehicle</a> before booking.</p>
-{% elif not slots %}
+{% elif not facilities %}
 <p class="muted">No parking slots are open for booking right now.</p>
 {% else %}
+
+<form method="GET" action="{{ url_for('reservations.new_reservation') }}" id="window-form" data-autosubmit class="card">
+    <div class="row">
+        <div class="field">
+            <label for="facility">Facility</label>
+            <select id="facility" name="facility">
+                {% for f in facilities %}
+                <option value="{{ f.facility_id }}" {% if f.facility_id == selected_facility.facility_id %}selected{% endif %}>{{ f.name }}, {{ f.city }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="reservation_type">Type</label>
+            <select id="reservation_type" name="reservation_type">
+                {% for t in reservation_types %}
+                <option value="{{ t }}" {% if t == reservation_type %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="field">
+            <label for="start_time">Start</label>
+            <input type="datetime-local" id="start_time" name="start_time" value="{{ start_value }}">
+        </div>
+        <div class="field">
+            <label for="end_time">End</label>
+            <input type="datetime-local" id="end_time" name="end_time" value="{{ end_value }}">
+        </div>
+    </div>
+    <p id="duration-hint" class="muted"></p>
+    <noscript><button type="submit" class="outline">Show seats</button></noscript>
+</form>
+
 <form method="POST" action="{{ url_for('reservations.create_reservation') }}" id="booking-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="start_time" value="{{ start_value }}">
+    <input type="hidden" name="end_time" value="{{ end_value }}">
+    <input type="hidden" name="reservation_type" value="{{ reservation_type }}">
 
     <div class="field">
         <label for="vehicle_id">Vehicle</label>
@@ -20,42 +57,43 @@
         </select>
     </div>
 
-    <div class="field">
-        <label for="slot_id">Slot</label>
-        <select id="slot_id" name="slot_id" required>
-            {% for s in slots %}
-            <option value="{{ s.slot_id }}">
-                {{ s.floor.facility.name }} &middot; floor {{ s.floor.floor_number }} &middot; {{ s.slot_number }}
-                {% if s.is_ev_charging %}(EV){% endif %}{% if s.is_accessible %}(accessible){% endif %}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+    <h2>Choose your seat &middot; {{ selected_facility.name }}</h2>
+    {% if not window_ready %}
+    <p class="muted">Choose a start and end time above to see which seats are free.</p>
+    {% endif %}
 
-    <div class="row">
-        <div class="field">
-            <label for="start_time">Start</label>
-            <input type="datetime-local" id="start_time" name="start_time" required>
-        </div>
-        <div class="field">
-            <label for="end_time">End</label>
-            <input type="datetime-local" id="end_time" name="end_time" required>
-        </div>
-    </div>
-
-    <div class="field">
-        <label for="reservation_type">Type</label>
-        <select id="reservation_type" name="reservation_type">
-            {% for t in reservation_types %}
-            <option value="{{ t }}">{{ t }}</option>
+    {% for view in floor_views %}
+    <h3>Floor {{ view.floor.floor_number }}{% if view.floor.name %} &ndash; {{ view.floor.name }}{% endif %}</h3>
+    <div class="screen">Entrance</div>
+    <div class="seat-map">
+        {% for row in view.rows %}
+        <div class="seat-row">
+            {% for seat in row %}
+            {% set s = seat.slot %}
+            <input type="radio" class="seat-input" name="slot_id" id="seat-{{ s.slot_id }}"
+                   value="{{ s.slot_id }}" required {% if seat.state != 'free' %}disabled{% endif %}>
+            <label for="seat-{{ s.slot_id }}" class="seat {{ seat.state }}"
+                   title="{{ s.slot_number }}{% if s.is_ev_charging %} · EV{% endif %}{% if s.is_accessible %} · accessible{% endif %}: {{ seat.state }}">
+                {{ s.slot_number }}
+            </label>
             {% endfor %}
-        </select>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">This facility has no floors with slots yet.</p>
+    {% endfor %}
+
+    <div class="legend">
+        <span class="seat free">Free</span>
+        <span class="seat taken">Taken</span>
+        <span class="seat unavailable">Unavailable</span>
     </div>
 
     <p class="muted">Reservations must be between 30 minutes and 12 hours.</p>
-    <p id="duration-hint" class="muted"></p>
-    <button type="submit">Book slot</button>
+    <button type="submit">Book selected seat</button>
 </form>
+
 {% endif %}
 
 <p><a href="{{ url_for('reservations.my_reservations') }}">My reservations</a></p>
