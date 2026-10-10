@@ -131,3 +131,28 @@ table.sortable th[data-dir="desc"]::after { content: " \25BC"; font-size: 0.7em;
 .slot:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
 #duration-hint.error { color: var(--fg); font-weight: 600; text-decoration: underline; }
 button:disabled { opacity: 0.5; cursor: wait; }
+
+/* Seat picker, like choosing seats for a film */
+.screen {
+  margin: 0.75rem auto 1rem; max-width: 70%; text-align: center; font-size: 0.75rem;
+  letter-spacing: 0.25em; color: var(--muted); border-top: 4px solid var(--fg); padding-top: 0.3rem;
+}
+.seat-map { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; margin-bottom: 1rem; overflow-x: auto; }
+.seat-row { display: flex; gap: 0.4rem; justify-content: center; }
+.seat-input { position: absolute; opacity: 0; pointer-events: none; }
+.seat {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 2.6rem; height: 2.4rem;
+  padding: 0 0.3rem; border: 2px solid var(--fg); border-radius: 8px 8px 4px 4px;
+  font-size: 0.8rem; background: var(--bg); color: var(--fg); cursor: pointer; user-select: none;
+}
+.seat.free:hover { background: var(--fill); }
+.seat.taken {
+  background: repeating-linear-gradient(45deg, var(--bg) 0 4px, var(--line) 4px 8px);
+  border-color: var(--muted); color: var(--muted); cursor: not-allowed;
+}
+.seat.unavailable, .seat.pick {
+  border-style: dashed; border-color: var(--muted); color: var(--muted); cursor: not-allowed;
+}
+.seat-input:checked + .seat { background: var(--fg); color: var(--bg); }
+.seat-input:focus-visible + .seat { outline: 3px solid var(--fg); outline-offset: 2px; }
+.legend .seat { cursor: default; }

@@ -94,16 +94,54 @@ def _flash_errors(errors):
     for message in errors:
         flash(message, "error")
 
+def _window_ready(start, end, now):
+    """True when the chosen times form a bookable window (future start, allowed length)."""
+    if start is None or end is None or start < now:
+        return False
+    return MIN_DURATION <= end - start <= MAX_DURATION
+
+
+def _seat_state(slot, reservation_type, start, end):
+    if slot.operational_status != "active":
+        return "unavailable"
+    if reservation_type == "ev_charging" and not slot.is_ev_charging:
+        return "unavailable"
+    if reservation_type == "accessible" and not slot.is_accessible:
+        return "unavailable"
+    if start is None:
+        return "pick"
+    if has_conflict(slot.slot_id, start, end):
+        return "taken"
+    return "free"
+
+
+def _seat_rows(slots, reservation_type, start, end):
+    """Group one floor's slots into rows by their map position, left to right."""
+    rows = {}
+    for slot in slots:
+        rows.setdefault(slot.map_y, []).append(slot)
+    return [
+        [
+            {"slot": slot, "state": _seat_state(slot, reservation_type, start, end)}
+            for slot in sorted(rows[y], key=lambda item: item.map_x)
+        ]
+        for y in sorted(rows)
+    ]
+
+
 @reservations.route("/reservations/new")
 @login_required
 def new_reservation():
+    expire_stale_reservations()
     user = current_user()
     my_vehicles = (
         Vehicle.query.filter_by(user_id=user.user_id)
         .order_by(Vehicle.vehicle_number)
         .all()
     )
-    bookable_slots = (
+
+    # Facilities that have at least one open slot, for the facility picker.
+    open_slots = (
         ParkingSlot.query
         .join(ParkingFloor, ParkingSlot.floor_id == ParkingFloor.floor_id)
         .join(ParkingFacility, ParkingFloor.facility_id == ParkingFacility.facility_id)
@@ -111,14 +149,48 @@ def new_reservation():
             ParkingSlot.operational_status == "active",
             ParkingFacility.status == "active",
         )
-        .order_by(ParkingFacility.name, ParkingFloor.floor_number, ParkingSlot.slot_number)
         .all()
     )
+    facilities = sorted(
+        {slot.floor.facility.facility_id: slot.floor.facility for slot in open_slots}.values(),
+        key=lambda facility: facility.name,
+    )
+
+    facility_id = _parse_int(request.args.get("facility"))
+    selected = next(
+        (facility for facility in facilities if facility.facility_id == facility_id),
+        facilities[0] if facilities else None,
+    )
+
+    reservation_type = request.args.get("reservation_type", "standard")
+    if reservation_type not in RESERVATION_TYPES:
+        reservation_type = "standard"
+
+    start = _parse_datetime(request.args.get("start_time"))
+    end = _parse_datetime(request.args.get("end_time"))
+    window_ready = _window_ready(start, end, datetime.now())
+    seat_start, seat_end = (start, end) if window_ready else (None, None)
+
+    floor_views = []
+    if selected:
+        for floor in sorted(selected.floors, key=lambda item: item.floor_number):
+            if floor.slots:
+                floor_views.append({
+                    "floor": floor,
+                    "rows": _seat_rows(floor.slots, reservation_type, seat_start, seat_end),
+                })
+
     return render_template(
         "reservation_new.html",
         user=user,
         vehicles=my_vehicles,
-        slots=bookable_slots,
+        facilities=facilities,
+        selected_facility=selected,
+        floor_views=floor_views,
+        window_ready=window_ready,
+        start_value=start.strftime(DATETIME_FORMAT) if start else "",
+        end_value=end.strftime(DATETIME_FORMAT) if end else "",
+        reservation_type=reservation_type,
         reservation_types=RESERVATION_TYPES,
         csrf_token=csrf_token(),
     )
