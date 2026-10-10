@@ -198,3 +198,34 @@ def my_history():
     ]
     top_spots = Counter(row["location"] for row in rows).most_common(3)
     return render_template("history.html", user=user, rows=rows, top_spots=top_spots)
+
+
+@parking_sessions.route("/locator")
+@login_required
+def vehicle_locator():
+    user = current_user()
+    vehicles = (
+        Vehicle.query.filter_by(user_id=user.user_id)
+        .order_by(Vehicle.vehicle_number)
+        .all()
+    )
+    items = []
+    for vehicle in vehicles:
+        open_session = ParkingSession.query.filter(
+            ParkingSession.vehicle_id == vehicle.vehicle_id,
+            ParkingSession.status == SESSION_ACTIVE,
+            ParkingSession.exit_time.is_(None),
+        ).first()
+        latest = open_session or (
+            ParkingSession.query.filter_by(vehicle_id=vehicle.vehicle_id)
+            .order_by(ParkingSession.entry_time.desc())
+            .first()
+        )
+        items.append({
+            "vehicle": vehicle,
+            "parked": open_session is not None,
+            "latest": latest,
+            "location": _location_label(latest.slot) if latest else None,
+            "facility_id": latest.slot.floor.facility_id if latest else None,
+        })
+    return render_template("locator.html", user=user, items=items)
