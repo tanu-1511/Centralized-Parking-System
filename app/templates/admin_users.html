@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Roles | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>Manage User Roles</h1>
+
+    <p>Assign a parking administrator to one facility. System admin accounts are set up separately.</p>
+
+    {% include "_flashes.html" %}
+
+    <table>
+        <tr><th>Username</th><th>Email</th><th>Role and facility</th></tr>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+                {% if u.role == 'admin' %}
+                admin (fixed)
+                {% elif u.user_id == user.user_id %}
+                {{ u.role }} (you)
+                {% else %}
+                <form method="POST" action="{{ url_for('facilities.assign_user_role', user_id=u.user_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <select name="role">
+                        <option value="user" {% if u.role == 'user' %}selected{% endif %}>user</option>
+                        <option value="parking_admin" {% if u.role == 'parking_admin' %}selected{% endif %}>parking_admin</option>
+                    </select>
+                    <select name="facility_id">
+                        <option value="">(no facility)</option>
+                        {% for f in facilities %}
+                        <option value="{{ f.facility_id }}" {% if u.facility_id == f.facility_id %}selected{% endif %}>{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Save</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="{{ url_for('main.dashboard') }}">Back to dashboard</a></p>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ facility.name }} | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>{{ facility.name }}</h1>
+
+    <p>{{ facility.address }}, {{ facility.city }} &middot; status: {{ facility.status }}</p>
+
+    {% include "_flashes.html" %}
+
+    {% if can_manage %}
+    <h2>Edit facility</h2>
+    <form method="POST" action="{{ url_for('facilities.update_facility', facility_id=facility.facility_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="text" name="name" value="{{ facility.name }}" maxlength="150" required>
+        <input type="text" name="address" value="{{ facility.address }}" maxlength="255" required>
+        <input type="text" name="city" value="{{ facility.city }}" maxlength="100" required>
+        <select name="status">
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if s == facility.status %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Save facility</button>
+    </form>
+    {% endif %}
+
+    <h2>Floors and slots</h2>
+
+    {% for floor in floors %}
+    <h3>Floor {{ floor.floor_number }}{% if floor.name %} &ndash; {{ floor.name }}{% endif %}</h3>
+
+    {% if floor.slots %}
+    <table>
+        <tr>
+            <th>Slot</th><th>Type</th><th>EV</th><th>Accessible</th>
+            <th>Map (x, y)</th><th>Status</th><th></th>
+        </tr>
+        {% for slot in floor.slots|sort(attribute='slot_number') %}
+        <tr>
+            <td>{{ slot.slot_number }}</td>
+            <td>{{ slot.slot_type }}</td>
+            <td>{{ 'Yes' if slot.is_ev_charging else 'No' }}</td>
+            <td>{{ 'Yes' if slot.is_accessible else 'No' }}</td>
+            <td>{{ slot.map_x }}, {{ slot.map_y }}</td>
+            <td>{{ slot.operational_status }}</td>
+            <td>
+                {% if can_manage %}
+                <form method="POST" action="{{ url_for('facilities.update_slot_status', facility_id=facility.facility_id, slot_id=slot.slot_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <select name="operational_status">
+                        {% for s in slot_statuses %}
+                        <option value="{{ s }}" {% if s == slot.operational_status %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Save</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No slots on this floor yet.</p>
+    {% endif %}
+
+    {% if can_manage %}
+    <form method="POST" action="{{ url_for('facilities.create_slot', facility_id=facility.facility_id, floor_id=floor.floor_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="text" name="slot_number" placeholder="Slot number" maxlength="20" required>
+        <select name="slot_type">
+            {% for t in slot_types %}
+            <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="map_x" value="0" min="0" max="10000" step="any" required>
+        <input type="number" name="map_y" value="0" min="0" max="10000" step="any" required>
+        <select name="operational_status">
+            {% for s in slot_statuses %}
+            <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+        </select>
+        <label><input type="checkbox" name="is_ev_charging"> EV charging</label>
+        <label><input type="checkbox" name="is_accessible"> Accessible</label>
+        <button type="submit">Add slot</button>
+    </form>
+    {% endif %}
+
+    {% else %}
+    <p>No floors yet.</p>
+    {% endfor %}
+
+    {% if can_manage %}
+    <h2>Add a floor</h2>
+    <form method="POST" action="{{ url_for('facilities.create_floor', facility_id=facility.facility_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="number" name="floor_number" placeholder="Floor number" min="-10" max="100" required>
+        <input type="text" name="name" placeholder="Name (optional)" maxlength="50">
+        <button type="submit">Add floor</button>
+    </form>
+    {% endif %}
+
+    <p><a href="{{ url_for('facilities.list_facilities') }}">Back to facilities</a></p>
+
+</body>
+</html>
