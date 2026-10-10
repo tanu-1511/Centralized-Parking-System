@@ -108,6 +108,7 @@
     <p><a href="{{ url_for('facilities.facility_map', facility_id=facility.facility_id) }}">View live map</a></p>
     {% if can_manage %}<p><a href="{{ url_for('parking_sessions.facility_sessions', facility_id=facility.facility_id) }}">Record entries and exits</a></p>{% endif %}
     {% if can_manage %}<p><a href="{{ url_for('analytics.facility_dashboard', facility_id=facility.facility_id) }}">Analytics</a></p>{% endif %}
+    {% if can_manage %}<p><a href="{{ url_for('detection.detection_page', facility_id=facility.facility_id) }}">Occupancy feed</a></p>{% endif %}
 
     <p><a href="{{ url_for('facilities.list_facilities') }}">Back to facilities</a></p>
 
