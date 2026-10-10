@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Vehicle | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>Edit Vehicle</h1>
+
+    {% include "_flashes.html" %}
+
+    <form method="POST" action="{{ url_for('vehicles.update_vehicle', vehicle_id=vehicle.vehicle_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="vehicle_number">Vehicle number:</label>
+        <input type="text" id="vehicle_number" name="vehicle_number" value="{{ vehicle.vehicle_number }}" maxlength="20" required>
+
+        <br><br>
+
+        <label for="vehicle_type">Type:</label>
+        <select id="vehicle_type" name="vehicle_type">
+            {% for t in vehicle_types %}
+            <option value="{{ t }}" {% if t == vehicle.vehicle_type %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="vehicle_model">Model (optional):</label>
+        <input type="text" id="vehicle_model" name="vehicle_model" value="{{ vehicle.vehicle_model or '' }}" maxlength="50">
+
+        <br><br>
+
+        <button type="submit">Save vehicle</button>
+    </form>
+
+    <p><a href="{{ url_for('vehicles.list_vehicles') }}">Back to my vehicles</a></p>
+
+</body>
+</html>
