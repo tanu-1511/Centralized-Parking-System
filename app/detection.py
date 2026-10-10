@@ -74,3 +74,8 @@ def parse_feed(text, slot_ids_by_number):
             continue
         observations.append((slot_id, state == FEED_OCCUPIED))
     return observations, problems
+
+
+def current_states(slots):
+    """Latest detected state per slot: {slot_id: 'occupied' | 'vacated' | None}."""
+    return {slot.slot_id: latest_event_type(slot.slot_id) for slot in slots}

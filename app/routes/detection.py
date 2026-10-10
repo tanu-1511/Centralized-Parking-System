@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from app import db
-from app.detection import parse_feed, record_observations
+from app.detection import current_states, parse_feed, record_observations
 from app.models import OccupancyEvent, ParkingFacility, ParkingSlot
 from app.security import csrf_token, current_user, login_required, require_csrf
 from app.services import can_manage_facility
@@ -46,9 +46,12 @@ def detection_page(facility_id):
         .all()
         if slot_ids else []
     )
+    slots = _facility_slots(facility)
     return render_template(
         "detection.html",
         facility=facility,
+        slots=sorted(slots, key=lambda s: (s.floor.floor_number, s.slot_number)),
+        states=current_states(slots),
         events=events,
         user=user,
         csrf_token=csrf_token(),
