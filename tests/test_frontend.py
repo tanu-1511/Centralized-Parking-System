@@ -46,3 +46,10 @@ def test_signed_in_nav_shows_app_links_and_logout(app, client):
     assert "Logout" in html
     assert "Sign up" not in html
 
+
+
+def test_app_script_is_served_and_loaded(client):
+    response = client.get("/static/app.js")
+    assert response.status_code == 200
+    assert "data-live" in response.get_data(as_text=True)
+    assert "app.js" in client.get("/login").get_data(as_text=True)

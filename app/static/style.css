@@ -120,3 +120,14 @@ th { font-weight: 600; border-bottom: 2px solid var(--fg); }
   h1 { font-size: 1.35rem; }
   .site nav a { margin-right: 0.4rem; }
 }
+
+/* Dynamic bits */
+[hidden] { display: none !important; }
+.filter { width: 100%; max-width: 320px; margin: 0.5rem 0; }
+table.sortable th { cursor: pointer; user-select: none; }
+table.sortable th[data-dir="asc"]::after { content: " \25B2"; font-size: 0.7em; }
+table.sortable th[data-dir="desc"]::after { content: " \25BC"; font-size: 0.7em; }
+.slot { cursor: pointer; }
+.slot:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+#duration-hint.error { color: var(--fg); font-weight: 600; text-decoration: underline; }
+button:disabled { opacity: 0.5; cursor: wait; }

@@ -4,7 +4,8 @@
 <h1>My vehicles</h1>
 
 {% if vehicles %}
-<table>
+<input type="search" class="filter" placeholder="Filter vehicles" aria-label="Filter vehicles" data-filter-for="vehicles-table">
+<table id="vehicles-table" class="sortable">
     <tr><th>Number</th><th>Type</th><th>Model</th><th></th></tr>
     {% for v in vehicles %}
     <tr>

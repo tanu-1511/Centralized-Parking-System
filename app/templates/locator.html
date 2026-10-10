@@ -4,7 +4,8 @@
 <h1>Find my car</h1>
 
 {% if items %}
-<table>
+<input type="search" class="filter" placeholder="Filter vehicles" aria-label="Filter vehicles" data-filter-for="locator-table">
+<table id="locator-table" class="sortable">
     <tr><th>Vehicle</th><th>Where</th><th>Status</th></tr>
     {% for item in items %}
     <tr>
