@@ -5,7 +5,12 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from app import db
 from app.models import ParkingFacility, ParkingFloor, ParkingSlot, Reservation, Vehicle
 from app.security import csrf_token, current_user, login_required, require_csrf
-from app.services import RESERVATION_CANCELLED, RESERVATION_CONFIRMED, has_conflict
+from app.services import (
+    RESERVATION_CANCELLED,
+    RESERVATION_CONFIRMED,
+    expire_stale_reservations,
+    has_conflict,
+)
 
 reservations = Blueprint("reservations", __name__)
 
@@ -145,6 +150,7 @@ def create_reservation():
 @reservations.route("/reservations/mine")
 @login_required
 def my_reservations():
+    expire_stale_reservations()
     user = current_user()
     mine = (
         Reservation.query.filter_by(user_id=user.user_id)
