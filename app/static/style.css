@@ -155,4 +155,12 @@ button:disabled { opacity: 0.5; cursor: wait; }
 }
 .seat-input:checked + .seat { background: var(--fg); color: var(--bg); }
 .seat-input:focus-visible + .seat { outline: 3px solid var(--fg); outline-offset: 2px; }
-.legend .seat { cursor: default; }
+.key {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 5.5rem; height: 2rem;
+  padding: 0 0.5rem; border: 2px solid var(--fg); border-radius: 6px; font-size: 0.8rem;
+}
+.key.taken {
+  background: repeating-linear-gradient(45deg, var(--bg) 0 4px, var(--line) 4px 8px);
+  border-color: var(--muted); color: var(--muted);
+}
+.key.unavailable { border-style: dashed; border-color: var(--muted); color: var(--muted); }
