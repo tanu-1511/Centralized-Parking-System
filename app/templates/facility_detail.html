@@ -105,6 +105,8 @@
     </form>
     {% endif %}
 
+    <p><a href="{{ url_for('facilities.facility_map', facility_id=facility.facility_id) }}">View live map</a></p>
+
     <p><a href="{{ url_for('facilities.list_facilities') }}">Back to facilities</a></p>
 
 </body>
