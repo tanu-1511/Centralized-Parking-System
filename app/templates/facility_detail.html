@@ -106,6 +106,7 @@
     {% endif %}
 
     <p><a href="{{ url_for('facilities.facility_map', facility_id=facility.facility_id) }}">View live map</a></p>
+    {% if can_manage %}<p><a href="{{ url_for('parking_sessions.facility_sessions', facility_id=facility.facility_id) }}">Record entries and exits</a></p>{% endif %}
 
     <p><a href="{{ url_for('facilities.list_facilities') }}">Back to facilities</a></p>
 

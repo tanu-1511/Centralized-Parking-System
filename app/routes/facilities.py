@@ -6,6 +6,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from app import db
 from app.models import ParkingFacility, ParkingFloor, ParkingSlot, User
 from app.services import (
+    can_manage_facility,
     STATE_AVAILABLE,
     STATE_OCCUPIED,
     STATE_RESERVED,
@@ -28,17 +29,11 @@ SLOT_STATUSES = ("active", "maintenance", "inactive")
 ASSIGNABLE_ROLES = ("user", "parking_admin")
 
 
-def _can_manage(user, facility_id):
-    if user.role == "admin":
-        return True
-    return user.role == "parking_admin" and user.facility_id == facility_id
-
-
 def _require_manage(facility_id):
     """404 if the facility is missing; 403 unless the user may manage it."""
     db.get_or_404(ParkingFacility, facility_id)
     user = current_user()
-    if not _can_manage(user, facility_id):
+    if not can_manage_facility(user, facility_id):
         abort(403)
     return user
 
@@ -137,7 +132,7 @@ def facility_detail(facility_id):
         facility=facility,
         floors=floors,
         user=user,
-        can_manage=_can_manage(user, facility_id),
+        can_manage=can_manage_facility(user, facility_id),
         statuses=FACILITY_STATUSES,
         slot_types=SLOT_TYPES,
         slot_statuses=SLOT_STATUSES,

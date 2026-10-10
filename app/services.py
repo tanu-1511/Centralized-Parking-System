@@ -115,3 +115,10 @@ def has_conflict(slot_id, start, end, now=None):
         Reservation.start_time < end,
         Reservation.end_time > start,
     ).first() is not None
+
+
+def can_manage_facility(user, facility_id):
+    """System admins manage every facility; parking admins only their own."""
+    if user.role == "admin":
+        return True
+    return user.role == "parking_admin" and user.facility_id == facility_id
