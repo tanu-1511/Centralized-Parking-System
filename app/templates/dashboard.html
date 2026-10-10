@@ -20,6 +20,8 @@
     <p><a href="{{ url_for('facilities.manage_users') }}">Manage user roles</a></p>
     {% endif %}
 
+    <p><a href="{{ url_for('parking_sessions.my_history') }}">Parking history</a></p>
+
     <p>Your vehicles and reservations will appear here in later steps.</p>
 
     <form method="POST" action="{{ url_for('auth.logout') }}">
