@@ -14,8 +14,16 @@
         Find, reserve, and manage parking from one centralized platform.
     </p>
 
+    {% if user %}
+    <p>Signed in as {{ user.username }}.</p>
+    <form method="POST" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Logout</button>
+    </form>
+    {% else %}
     <a href="{{ url_for('auth.login') }}">Login</a>
     <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+    {% endif %}
 
 </body>
 </html>
