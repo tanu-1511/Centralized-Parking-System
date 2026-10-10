@@ -1,9 +1,17 @@
 import math
+from collections import Counter
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from app import db
 from app.models import ParkingFacility, ParkingFloor, ParkingSlot, User
+from app.services import (
+    STATE_AVAILABLE,
+    STATE_OCCUPIED,
+    STATE_RESERVED,
+    STATE_UNAVAILABLE,
+    slot_states,
+)
 from app.security import (
     csrf_token,
     current_user,
@@ -313,3 +321,60 @@ def assign_user_role(user_id):
         db.session.commit()
         flash("User updated.", "success")
     return redirect(url_for("facilities.manage_users"))
+
+
+# ---------- Parking map ----------
+
+MAP_STATES = (STATE_AVAILABLE, STATE_OCCUPIED, STATE_RESERVED, STATE_UNAVAILABLE)
+
+
+@facilities.route("/facilities/<int:facility_id>/map")
+@login_required
+def facility_map(facility_id):
+    facility = db.get_or_404(ParkingFacility, facility_id)
+    only_ev = request.args.get("ev") == "1"
+    only_accessible = request.args.get("accessible") == "1"
+    only_state = request.args.get("state", "")
+    if only_state not in MAP_STATES:
+        only_state = ""
+
+    floors = (
+        ParkingFloor.query.filter_by(facility_id=facility_id)
+        .order_by(ParkingFloor.floor_number)
+        .all()
+    )
+    all_slots = [slot for floor in floors for slot in floor.slots]
+    states = slot_states(all_slots)
+
+    floor_views = []
+    for floor in floors:
+        shown = []
+        for slot in sorted(floor.slots, key=lambda s: s.slot_number):
+            state = states[slot.slot_id]
+            if only_ev and not slot.is_ev_charging:
+                continue
+            if only_accessible and not slot.is_accessible:
+                continue
+            if only_state and state != only_state:
+                continue
+            shown.append({
+                "slot": slot,
+                "state": state,
+                # Stored coordinates run 0-10000; convert to percent of the box.
+                "left": round(slot.map_x / 100, 2),
+                "top": round(slot.map_y / 100, 2),
+            })
+        floor_views.append({"floor": floor, "slots": shown})
+
+    counts = Counter(states.values())
+    return render_template(
+        "facility_map.html",
+        facility=facility,
+        floor_views=floor_views,
+        counts={state: counts.get(state, 0) for state in MAP_STATES},
+        only_ev=only_ev,
+        only_accessible=only_accessible,
+        only_state=only_state,
+        map_states=MAP_STATES,
+        user=current_user(),
+    )

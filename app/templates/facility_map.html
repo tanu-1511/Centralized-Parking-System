@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ facility.name }} map | Centralized Parking Management</title>
+    <style>
+        .legend span { display: inline-block; padding: 2px 8px; margin-right: 6px; border-radius: 4px; color: #fff; }
+        .legend .available { background: #2e7d32; }
+        .legend .occupied { background: #c62828; }
+        .legend .reserved { background: #f9a825; color: #000; }
+        .legend .unavailable { background: #757575; }
+        .floor-map { position: relative; width: 100%; max-width: 640px; aspect-ratio: 4 / 3;
+                     border: 2px solid #444; background: #f5f5f5; margin-bottom: 1.5em; }
+        .slot { position: absolute; transform: translate(-50%, -50%); padding: 2px 4px;
+                font-size: 12px; border-radius: 3px; color: #fff; white-space: nowrap; }
+        .slot.available { background: #2e7d32; }
+        .slot.occupied { background: #c62828; }
+        .slot.reserved { background: #f9a825; color: #000; }
+        .slot.unavailable { background: #757575; }
+    </style>
+</head>
+
+<body>
+
+    <h1>{{ facility.name }}: live map</h1>
+
+    <p>Colours show each slot's current state. Maintenance or inactive slots are grey.</p>
+
+    <p class="legend">
+        <span class="available">Available {{ counts.available }}</span>
+        <span class="occupied">Occupied {{ counts.occupied }}</span>
+        <span class="reserved">Reserved {{ counts.reserved }}</span>
+        <span class="unavailable">Unavailable {{ counts.unavailable }}</span>
+    </p>
+
+    <form method="GET" action="{{ url_for('facilities.facility_map', facility_id=facility.facility_id) }}">
+        <label><input type="checkbox" name="ev" value="1" {% if only_ev %}checked{% endif %}> EV charging only</label>
+        <label><input type="checkbox" name="accessible" value="1" {% if only_accessible %}checked{% endif %}> Accessible only</label>
+        <select name="state">
+            <option value="">All states</option>
+            {% for s in map_states %}
+            <option value="{{ s }}" {% if s == only_state %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Apply filters</button>
+    </form>
+
+    {% for view in floor_views %}
+    <h2>Floor {{ view.floor.floor_number }}{% if view.floor.name %} &ndash; {{ view.floor.name }}{% endif %}</h2>
+    <div class="floor-map">
+        {% for item in view.slots %}
+        <div class="slot {{ item.state }}"
+             style="left: {{ item.left }}%; top: {{ item.top }}%;"
+             title="{{ item.slot.slot_number }}: {{ item.state }}">
+            {{ item.slot.slot_number }}{% if item.slot.is_ev_charging %} EV{% endif %}{% if item.slot.is_accessible %} &#9855;{% endif %}
+        </div>
+        {% else %}
+        <p>No slots match these filters on this floor.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No floors yet.</p>
+    {% endfor %}
+
+    <p><a href="{{ url_for('facilities.facility_detail', facility_id=facility.facility_id) }}">Back to facility</a></p>
+
+</body>
+</html>
