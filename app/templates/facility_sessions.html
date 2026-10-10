@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Sessions | {{ facility.name }}</title>
+</head>
+
+<body>
+
+    <h1>Parking sessions: {{ facility.name }}</h1>
+
+    {% include "_flashes.html" %}
+
+    <h2>Record an entry</h2>
+    {% if open_slots %}
+    <form method="POST" action="{{ url_for('parking_sessions.start_session', facility_id=facility.facility_id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="text" name="vehicle_number" placeholder="Vehicle number" maxlength="20" required>
+        <select name="slot_id" required>
+            {% for s in open_slots %}
+            <option value="{{ s.slot_id }}">floor {{ s.floor.floor_number }} &middot; {{ s.slot_number }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Record entry</button>
+    </form>
+    {% else %}
+    <p>No free, open slots in this facility.</p>
+    {% endif %}
+
+    <h2>Currently parked</h2>
+    {% if active %}
+    <table>
+        <tr><th>Slot</th><th>Vehicle</th><th>Entered</th><th></th></tr>
+        {% for p in active %}
+        <tr>
+            <td>floor {{ p.slot.floor.floor_number }} &middot; {{ p.slot.slot_number }}</td>
+            <td>{{ p.vehicle.vehicle_number }}</td>
+            <td>{{ p.entry_time.strftime('%d %b %Y %H:%M') }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('parking_sessions.end_session', facility_id=facility.facility_id, session_id=p.session_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Record exit</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No vehicles are parked right now.</p>
+    {% endif %}
+
+    <h2>Recent history</h2>
+    {% if history %}
+    <table>
+        <tr><th>Slot</th><th>Vehicle</th><th>Entered</th><th>Exited</th></tr>
+        {% for p in history %}
+        <tr>
+            <td>floor {{ p.slot.floor.floor_number }} &middot; {{ p.slot.slot_number }}</td>
+            <td>{{ p.vehicle.vehicle_number }}</td>
+            <td>{{ p.entry_time.strftime('%d %b %Y %H:%M') }}</td>
+            <td>{{ p.exit_time.strftime('%d %b %Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No completed sessions yet.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('facilities.facility_detail', facility_id=facility.facility_id) }}">Back to facility</a></p>
+
+</body>
+</html>
