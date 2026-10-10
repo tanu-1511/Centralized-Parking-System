@@ -4,11 +4,6 @@ One platform for finding, reserving, and managing parking across several facilit
 
 Built with Flask, SQLite, and SQLAlchemy. Optional camera support uses OpenCV.
 
-> A semester-long DevOps project.
-
-## Team
-
-- _Add team member names here_
 
 ---
 
