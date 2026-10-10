@@ -4,8 +4,10 @@ Run from the project folder with the venv active:
 
     python -m app.seed
 
-It adds one facility with two floors, a few vehicles, one parked car, and one
-upcoming booking. Running it again changes nothing if the demo facility exists.
+It adds one facility with two floors and twelve slots, two vehicles, one parked
+car, one finished visit, and one upcoming booking. Running it again adds no
+duplicate data, but it always sets the three demo accounts to the demo password,
+so a demo login works even if an account with that email already existed.
 The demo accounts share one password. Use them for local testing only.
 """
 from datetime import datetime, timedelta
@@ -18,9 +20,9 @@ from app.models import ParkingFacility, ParkingFloor, ParkingSession, ParkingSlo
 DEMO_FACILITY = "Demo Mall"
 DEMO_PASSWORD = "demo-password-123"
 DEMO_ACCOUNTS = (
-    ("admin@example.com", "Demo Admin", "admin", None),
-    ("lot.manager@example.com", "Lot Manager", "parking_admin", "facility"),
-    ("driver@example.com", "Demo Driver", "user", None),
+    ("admin@example.com", "Demo Admin", "admin", False),
+    ("lot.manager@example.com", "Lot Manager", "parking_admin", True),
+    ("driver@example.com", "Demo Driver", "user", False),
 )
 
 
@@ -35,26 +37,18 @@ def _slot(floor, number, slot_type="standard", ev=False, accessible=False, x=0, 
     return slot
 
 
-def seed_demo(now=None):
-    """Create the demo data. Returns True if it was added, False if it already exists."""
-    if ParkingFacility.query.filter_by(name=DEMO_FACILITY).first():
-        return False
-    now = now or datetime.now().replace(second=0, microsecond=0)
-
-    facility = ParkingFacility(name=DEMO_FACILITY, address="12 MG Road", city="Pune", status="active")
-    db.session.add(facility)
-    db.session.flush()
-
+def _add_facility_layout(facility):
+    """Floors and slots. Returns the slots by number, for the visit and booking below."""
     ground = ParkingFloor(facility_id=facility.facility_id, floor_number=1, name="Ground")
     upper = ParkingFloor(facility_id=facility.facility_id, floor_number=2, name="Upper")
     db.session.add_all([ground, upper])
     db.session.flush()
 
     # Ground floor: a 4 x 2 grid. A5 has EV charging, A6 is accessible, A8 is compact.
-    ground_slots = {}
+    slots = {}
     for index in range(8):
         number = f"A{index + 1}"
-        ground_slots[number] = _slot(
+        slots[number] = _slot(
             ground, number,
             slot_type="compact" if number == "A8" else "standard",
             ev=number == "A5", accessible=number == "A6",
@@ -62,53 +56,72 @@ def seed_demo(now=None):
         )
 
     # Upper floor: B4 is under maintenance, so it shows as unavailable on the map.
-    upper_slots = {}
     for index in range(4):
         number = f"B{index + 1}"
-        upper_slots[number] = _slot(
+        slots[number] = _slot(
             upper, number,
             x=1000 + index * 2500, y=2000,
             status="maintenance" if number == "B4" else "active",
         )
+    return slots
 
-    for email, username, role, link in DEMO_ACCOUNTS:
+
+def _ensure_accounts(facility):
+    """Create each demo account if missing. Always set the demo password and facility link."""
+    for email, username, role, manages_facility in DEMO_ACCOUNTS:
         user = User.query.filter_by(email=email).first()
         if user is None:
-            user = User(
-                username=username, email=email,
-                password_hash=generate_password_hash(DEMO_PASSWORD), role=role,
-                facility_id=facility.facility_id if link == "facility" else None,
-            )
+            user = User(username=username, email=email)
             db.session.add(user)
-            db.session.flush()
-
-    driver = User.query.filter_by(email="driver@example.com").first()
-    car = Vehicle(user_id=driver.user_id, vehicle_number="MH12AB1234", vehicle_type="car", vehicle_model="Swift")
-    bike = Vehicle(user_id=driver.user_id, vehicle_number="MH14XY9876", vehicle_type="motorcycle", vehicle_model=None)
-    db.session.add_all([car, bike])
+        user.username = username
+        user.role = role
+        user.password_hash = generate_password_hash(DEMO_PASSWORD)
+        user.facility_id = facility.facility_id if manages_facility else None
     db.session.flush()
 
-    # A car that came in an hour ago and is still parked in A2.
-    db.session.add(ParkingSession(
-        vehicle_id=car.vehicle_id, slot_id=ground_slots["A2"].slot_id,
-        entry_time=now - timedelta(hours=1), exit_time=None, status="active",
-    ))
-    # A finished visit yesterday, for history and analytics.
-    db.session.add(ParkingSession(
-        vehicle_id=bike.vehicle_id, slot_id=ground_slots["A3"].slot_id,
-        entry_time=now - timedelta(days=1, hours=3), exit_time=now - timedelta(days=1, hours=1),
-        status="completed",
-    ))
-    # A confirmed booking for tomorrow morning on the upper floor.
-    tomorrow = (now + timedelta(days=1)).replace(hour=10, minute=0)
-    db.session.add(Reservation(
-        user_id=driver.user_id, vehicle_id=car.vehicle_id, slot_id=upper_slots["B1"].slot_id,
-        start_time=tomorrow, end_time=tomorrow + timedelta(hours=2),
-        reservation_type="standard", status="confirmed", created_at=now,
-    ))
+
+def seed_demo(now=None):
+    """Add the demo data. Returns True if the facility was created now, False if it already existed."""
+    now = now or datetime.now().replace(second=0, microsecond=0)
+    facility = ParkingFacility.query.filter_by(name=DEMO_FACILITY).first()
+    created = facility is None
+
+    if created:
+        facility = ParkingFacility(name=DEMO_FACILITY, address="12 MG Road", city="Pune", status="active")
+        db.session.add(facility)
+        db.session.flush()
+        slots = _add_facility_layout(facility)
+
+    _ensure_accounts(facility)
+
+    if created:
+        driver = User.query.filter_by(email="driver@example.com").first()
+        car = Vehicle(user_id=driver.user_id, vehicle_number="MH12AB1234", vehicle_type="car", vehicle_model="Swift")
+        bike = Vehicle(user_id=driver.user_id, vehicle_number="MH14XY9876", vehicle_type="motorcycle", vehicle_model=None)
+        db.session.add_all([car, bike])
+        db.session.flush()
+
+        # A car that came in an hour ago and is still parked in A2.
+        db.session.add(ParkingSession(
+            vehicle_id=car.vehicle_id, slot_id=slots["A2"].slot_id,
+            entry_time=now - timedelta(hours=1), exit_time=None, status="active",
+        ))
+        # A finished visit yesterday, for history and analytics.
+        db.session.add(ParkingSession(
+            vehicle_id=bike.vehicle_id, slot_id=slots["A3"].slot_id,
+            entry_time=now - timedelta(days=1, hours=3), exit_time=now - timedelta(days=1, hours=1),
+            status="completed",
+        ))
+        # A confirmed booking for tomorrow morning on the upper floor.
+        tomorrow = (now + timedelta(days=1)).replace(hour=10, minute=0)
+        db.session.add(Reservation(
+            user_id=driver.user_id, vehicle_id=car.vehicle_id, slot_id=slots["B1"].slot_id,
+            start_time=tomorrow, end_time=tomorrow + timedelta(hours=2),
+            reservation_type="standard", status="confirmed", created_at=now,
+        ))
 
     db.session.commit()
-    return True
+    return created
 
 
 def main():
@@ -118,7 +131,7 @@ def main():
     if added:
         print("Demo data added.")
     else:
-        print("Demo data is already present. Nothing changed.")
+        print("Demo data was already present. Demo passwords were reset.")
     print(f"Demo logins (password {DEMO_PASSWORD}):")
     for email, _, role, _ in DEMO_ACCOUNTS:
         print(f"  {email}  ({role})")
