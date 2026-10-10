@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5">
     <title>Occupancy Feed | {{ facility.name }}</title>
 </head>
 
@@ -10,7 +11,7 @@
 
     <h1>Occupancy feed: {{ facility.name }}</h1>
 
-    <p>No camera is connected. Type what the feed reports, one slot per line, for example:</p>
+    <p>Camera results appear here when the video script runs. You can also type a feed by hand, one slot per line:</p>
     <pre>A1 occupied
 A2 vacant</pre>
 
@@ -22,6 +23,20 @@ A2 vacant</pre>
         <br>
         <button type="submit">Record feed</button>
     </form>
+
+    <h2>Detected now</h2>
+    {% if slots %}
+    <table>
+        <tr><th>Slot</th><th>Latest detection</th></tr>
+        {% for slot in slots %}
+        <tr>
+            <td>floor {{ slot.floor.floor_number }} &middot; {{ slot.slot_number }}</td>
+            <td>{% set st = states[slot.slot_id] %}{% if st == 'occupied' %}occupied{% elif st == 'vacated' %}vacant{% else %}no detection yet{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <p>This page refreshes every 5 seconds.</p>
 
     <h2>Recent occupancy events</h2>
     {% if events %}
