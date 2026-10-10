@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics | {{ facility.name }}</title>
+</head>
+
+<body>
+
+    <h1>Analytics: {{ facility.name }}</h1>
+
+    <h2>Right now</h2>
+    <ul>
+        <li>Total slots: {{ stats.total_slots }}</li>
+        <li>Available: {{ stats.available }}</li>
+        <li>Occupied: {{ stats.occupied }}</li>
+        <li>Reserved: {{ stats.reserved }}</li>
+        <li>Unavailable (maintenance or inactive): {{ stats.unavailable }}</li>
+    </ul>
+
+    <h2>Floor usage</h2>
+    {% if stats.floors %}
+    <table>
+        <tr><th>Floor</th><th>Slots</th><th>Available</th><th>Occupied</th><th>Reserved</th><th>Unavailable</th><th>Busy</th></tr>
+        {% for row in stats.floors %}
+        <tr>
+            <td>{{ row.floor.floor_number }}{% if row.floor.name %} ({{ row.floor.name }}){% endif %}</td>
+            <td>{{ row.total }}</td>
+            <td>{{ row.available }}</td>
+            <td>{{ row.occupied }}</td>
+            <td>{{ row.reserved }}</td>
+            <td>{{ row.unavailable }}</td>
+            <td>{{ row.usage_percent }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No floors yet.</p>
+    {% endif %}
+
+    <h2>Parking activity</h2>
+    <ul>
+        <li>Average parking duration:
+            {% if stats.average_duration_minutes is not none %}
+            {{ stats.average_duration_minutes }} min (from {{ stats.completed_sessions }} completed session{{ 's' if stats.completed_sessions != 1 }})
+            {% else %}
+            no completed sessions yet
+            {% endif %}
+        </li>
+        <li>Peak entry hours (24-hour clock):
+            {% if stats.peak_hours %}
+            {% for hour, count in stats.peak_hours %}{{ '%02d:00' % hour }} ({{ count }}){% if not loop.last %}, {% endif %}{% endfor %}
+            {% else %}
+            no entries yet
+            {% endif %}
+        </li>
+    </ul>
+
+    <h2>Reservations</h2>
+    {% if stats.reservation_counts %}
+    <ul>
+        {% for status, count in stats.reservation_counts.items() %}
+        <li>{{ status }}: {{ count }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No reservations for this facility yet.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('facilities.facility_detail', facility_id=facility.facility_id) }}">Back to facility</a></p>
+
+</body>
+</html>

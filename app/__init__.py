@@ -34,6 +34,7 @@ def create_app(test_config=None):
     from app.routes.vehicles import vehicles
     from app.routes.reservations import reservations
     from app.routes.parking_sessions import parking_sessions
+    from app.routes.analytics import analytics
     from app import models
 
     app.register_blueprint(main)
@@ -42,6 +43,7 @@ def create_app(test_config=None):
     app.register_blueprint(vehicles)
     app.register_blueprint(reservations)
     app.register_blueprint(parking_sessions)
+    app.register_blueprint(analytics)
 
     # Creates any missing tables (existing tables and data are left alone).
     with app.app_context():
