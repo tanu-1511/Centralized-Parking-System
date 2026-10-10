@@ -1,34 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Centralized Parking Management</title>
-</head>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="muted">Signed in as <strong>{{ user.username }}</strong> ({{ user.role }}).</p>
 
-<body>
-
-    <h1>Dashboard</h1>
-
-    <p>Signed in as <strong>{{ user.username }}</strong> ({{ user.role }}).</p>
-
-    <p><a href="{{ url_for('vehicles.list_vehicles') }}">My vehicles</a></p>
-    <p><a href="{{ url_for('reservations.new_reservation') }}">Book a slot</a> &middot; <a href="{{ url_for('reservations.my_reservations') }}">My reservations</a></p>
-    <p><a href="{{ url_for('facilities.list_facilities') }}">Parking facilities</a></p>
-
+<div class="tiles">
+    <a class="tile" href="{{ url_for('reservations.new_reservation') }}"><strong>Book a slot</strong><br><span class="muted">Reserve parking ahead of time</span></a>
+    <a class="tile" href="{{ url_for('reservations.my_reservations') }}"><strong>My reservations</strong><br><span class="muted">View or cancel bookings</span></a>
+    <a class="tile" href="{{ url_for('facilities.list_facilities') }}"><strong>Facilities</strong><br><span class="muted">Browse parking lots and maps</span></a>
+    <a class="tile" href="{{ url_for('vehicles.list_vehicles') }}"><strong>My vehicles</strong><br><span class="muted">Register and edit cars</span></a>
+    <a class="tile" href="{{ url_for('parking_sessions.vehicle_locator') }}"><strong>Find my car</strong><br><span class="muted">Where each vehicle is parked</span></a>
+    <a class="tile" href="{{ url_for('parking_sessions.my_history') }}"><strong>Parking history</strong><br><span class="muted">Past sessions and top spots</span></a>
     {% if user.role == 'admin' %}
-    <p><a href="{{ url_for('facilities.manage_users') }}">Manage user roles</a></p>
+    <a class="tile" href="{{ url_for('facilities.manage_users') }}"><strong>Manage user roles</strong><br><span class="muted">Assign parking admins</span></a>
     {% endif %}
-
-    <p><a href="{{ url_for('parking_sessions.my_history') }}">Parking history</a></p>
-    <p><a href="{{ url_for('parking_sessions.vehicle_locator') }}">Find my car</a></p>
-
-    <p>Your vehicles and reservations will appear here in later steps.</p>
-
-    <form method="POST" action="{{ url_for('auth.logout') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit">Logout</button>
-    </form>
-
-</body>
-</html>
+</div>
+{% endblock %}

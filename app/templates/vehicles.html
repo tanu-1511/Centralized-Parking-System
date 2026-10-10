@@ -1,60 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Vehicles | Centralized Parking Management</title>
-</head>
+{% extends "base.html" %}
+{% block title %}My vehicles{% endblock %}
+{% block content %}
+<h1>My vehicles</h1>
 
-<body>
+{% if vehicles %}
+<table>
+    <tr><th>Number</th><th>Type</th><th>Model</th><th></th></tr>
+    {% for v in vehicles %}
+    <tr>
+        <td>{{ v.vehicle_number }}</td>
+        <td>{{ v.vehicle_type }}</td>
+        <td>{{ v.vehicle_model or '' }}</td>
+        <td><a href="{{ url_for('vehicles.edit_vehicle_form', vehicle_id=v.vehicle_id) }}">Edit</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p class="muted">You have no vehicles registered yet.</p>
+{% endif %}
 
-    <h1>My Vehicles</h1>
-
-    {% include "_flashes.html" %}
-
-    {% if vehicles %}
-    <table>
-        <tr><th>Number</th><th>Type</th><th>Model</th><th></th></tr>
-        {% for v in vehicles %}
-        <tr>
-            <td>{{ v.vehicle_number }}</td>
-            <td>{{ v.vehicle_type }}</td>
-            <td>{{ v.vehicle_model or '' }}</td>
-            <td><a href="{{ url_for('vehicles.edit_vehicle_form', vehicle_id=v.vehicle_id) }}">Edit</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <p>You have no vehicles registered yet.</p>
-    {% endif %}
-
-    <h2>Register a vehicle</h2>
-    <form method="POST" action="{{ url_for('vehicles.create_vehicle') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-        <label for="vehicle_number">Vehicle number:</label>
+<h2>Register a vehicle</h2>
+<form method="POST" action="{{ url_for('vehicles.create_vehicle') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="field">
+        <label for="vehicle_number">Vehicle number</label>
         <input type="text" id="vehicle_number" name="vehicle_number" maxlength="20" required>
-
-        <br><br>
-
-        <label for="vehicle_type">Type:</label>
+    </div>
+    <div class="field">
+        <label for="vehicle_type">Type</label>
         <select id="vehicle_type" name="vehicle_type">
             {% for t in vehicle_types %}
             <option value="{{ t }}">{{ t }}</option>
             {% endfor %}
         </select>
-
-        <br><br>
-
-        <label for="vehicle_model">Model (optional):</label>
+    </div>
+    <div class="field">
+        <label for="vehicle_model">Model (optional)</label>
         <input type="text" id="vehicle_model" name="vehicle_model" maxlength="50">
-
-        <br><br>
-
-        <button type="submit">Register vehicle</button>
-    </form>
-
-    <p><a href="{{ url_for('main.dashboard') }}">Back to dashboard</a></p>
-
-</body>
-</html>
+    </div>
+    <button type="submit">Register vehicle</button>
+</form>
+{% endblock %}
