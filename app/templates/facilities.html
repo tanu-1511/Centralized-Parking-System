@@ -4,7 +4,8 @@
 <h1>Parking facilities</h1>
 
 {% if facilities %}
-<table>
+<input type="search" class="filter" placeholder="Filter facilities" aria-label="Filter facilities" data-filter-for="facilities-table">
+<table id="facilities-table" class="sortable">
     <tr><th>Name</th><th>City</th><th>Status</th><th></th></tr>
     {% for f in facilities %}
     <tr>

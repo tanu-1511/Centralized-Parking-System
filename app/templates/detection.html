@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Occupancy feed: {{ facility.name }}{% endblock %}
-{% block head %}<meta http-equiv="refresh" content="5">{% endblock %}
 {% block content %}
 <h1>Occupancy feed: {{ facility.name }}</h1>
 
@@ -16,35 +15,37 @@ A2 vacant</pre>
     <button type="submit">Record feed</button>
 </form>
 
-<h2>Detected now</h2>
-{% if slots %}
-<table>
-    <tr><th>Slot</th><th>Latest detection</th></tr>
-    {% for slot in slots %}
-    <tr>
-        <td>floor {{ slot.floor.floor_number }} &middot; {{ slot.slot_number }}</td>
-        <td>{% set st = states[slot.slot_id] %}{% if st == 'occupied' %}occupied{% elif st == 'vacated' %}vacant{% else %}no detection yet{% endif %}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% endif %}
-<p class="muted">This page refreshes every 5 seconds.</p>
+<div data-live="5">
+    <h2>Detected now</h2>
+    {% if slots %}
+    <table>
+        <tr><th>Slot</th><th>Latest detection</th></tr>
+        {% for slot in slots %}
+        <tr>
+            <td>floor {{ slot.floor.floor_number }} &middot; {{ slot.slot_number }}</td>
+            <td>{% set st = states[slot.slot_id] %}{% if st == 'occupied' %}occupied{% elif st == 'vacated' %}vacant{% else %}no detection yet{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
 
-<h2>Recent occupancy events</h2>
-{% if events %}
-<table>
-    <tr><th>Time</th><th>Slot</th><th>Event</th></tr>
-    {% for e in events %}
-    <tr>
-        <td>{{ e.event_time.strftime('%d %b %Y %H:%M:%S') }}</td>
-        <td>floor {{ e.slot.floor.floor_number }} &middot; {{ e.slot.slot_number }}</td>
-        <td>{{ e.event_type }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% else %}
-<p class="muted">No occupancy events yet.</p>
-{% endif %}
+    <h2>Recent occupancy events</h2>
+    {% if events %}
+    <table>
+        <tr><th>Time</th><th>Slot</th><th>Event</th></tr>
+        {% for e in events %}
+        <tr>
+            <td>{{ e.event_time.strftime('%d %b %Y %H:%M:%S') }}</td>
+            <td>floor {{ e.slot.floor.floor_number }} &middot; {{ e.slot.slot_number }}</td>
+            <td>{{ e.event_type }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="muted">No occupancy events yet.</p>
+    {% endif %}
+</div>
+<p class="muted">This section updates every 5 seconds. Text you type in the feed box is kept.</p>
 
 <p><a href="{{ url_for('facilities.facility_detail', facility_id=facility.facility_id) }}">Back to facility</a></p>
 {% endblock %}

@@ -14,7 +14,8 @@
 
 <h2>Sessions</h2>
 {% if rows %}
-<table>
+<input type="search" class="filter" placeholder="Filter sessions" aria-label="Filter sessions" data-filter-for="history-table">
+<table id="history-table" class="sortable">
     <tr><th>Location</th><th>Vehicle</th><th>Entered</th><th>Exited</th><th>Duration</th></tr>
     {% for row in rows %}
     {% set p = row.session %}

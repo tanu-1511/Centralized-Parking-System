@@ -4,7 +4,8 @@
 <h1>My reservations</h1>
 
 {% if reservations %}
-<table>
+<input type="search" class="filter" placeholder="Filter reservations" aria-label="Filter reservations" data-filter-for="reservations-table">
+<table id="reservations-table" class="sortable">
     <tr><th>Slot</th><th>Vehicle</th><th>Start</th><th>End</th><th>Type</th><th>Status</th><th></th></tr>
     {% for r in reservations %}
     <tr>
@@ -16,7 +17,7 @@
         <td>{{ r.status }}</td>
         <td>
             {% if r.status == 'confirmed' %}
-            <form method="POST" action="{{ url_for('reservations.cancel_reservation', reservation_id=r.reservation_id) }}" class="inline-form">
+            <form method="POST" action="{{ url_for('reservations.cancel_reservation', reservation_id=r.reservation_id) }}" class="inline-form" data-confirm="Cancel this reservation?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="outline">Cancel</button>
             </form>

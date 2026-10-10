@@ -8,7 +8,7 @@
 {% elif not slots %}
 <p class="muted">No parking slots are open for booking right now.</p>
 {% else %}
-<form method="POST" action="{{ url_for('reservations.create_reservation') }}">
+<form method="POST" action="{{ url_for('reservations.create_reservation') }}" id="booking-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
     <div class="field">
@@ -53,6 +53,7 @@
     </div>
 
     <p class="muted">Reservations must be between 30 minutes and 12 hours.</p>
+    <p id="duration-hint" class="muted"></p>
     <button type="submit">Book slot</button>
 </form>
 {% endif %}
