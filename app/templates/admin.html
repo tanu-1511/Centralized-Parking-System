@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>Administration</h1>
+
+    <p>Signed in as <strong>{{ user.username }}</strong> ({{ user.role }}).</p>
+
+    <p>Facility, floor, and slot management will be added in a later step.</p>
+
+    <p><a href="{{ url_for('main.dashboard') }}">Back to dashboard</a></p>
+
+</body>
+</html>
