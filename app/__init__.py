@@ -47,6 +47,13 @@ def create_app(test_config=None):
     app.register_blueprint(analytics)
     app.register_blueprint(detection)
 
+    from app.security import csrf_token, current_user
+
+    @app.context_processor
+    def inject_globals():
+        # Every page gets the signed-in user (for the nav) and the CSRF token.
+        return {"user": current_user(), "csrf_token": csrf_token()}
+
     # Creates any missing tables (existing tables and data are left alone).
     with app.app_context():
         db.create_all()

@@ -1,16 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Centralized Parking Management</title>
-</head>
-
-<body>
-
-    <h1>Create an Account</h1>
-
-    <p>Sign up to use the centralized parking system.</p>
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<div class="narrow">
+    <h1>Create an account</h1>
+    <p class="muted">Sign up to use the centralized parking system.</p>
 
     {% if errors %}
     <ul class="errors">
@@ -22,31 +15,25 @@
 
     <form method="POST" action="{{ url_for('auth.signup') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" value="{{ form.username }}" maxlength="80" required>
-
-        <br><br>
-
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="{{ form.email }}" maxlength="120" required>
-
-        <br><br>
-
-        <label for="phone">Phone (optional):</label>
-        <input type="tel" id="phone" name="phone" value="{{ form.phone }}" maxlength="15">
-
-        <br><br>
-
-        <label for="password">Password (at least 8 characters):</label>
-        <input type="password" id="password" name="password" minlength="8" maxlength="128" required>
-
-        <br><br>
-
-        <button type="submit">Sign Up</button>
+        <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="{{ form.username }}" maxlength="80" required>
+        </div>
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ form.email }}" maxlength="120" required>
+        </div>
+        <div class="field">
+            <label for="phone">Phone (optional)</label>
+            <input type="tel" id="phone" name="phone" value="{{ form.phone }}" maxlength="15">
+        </div>
+        <div class="field">
+            <label for="password">Password (at least 8 characters)</label>
+            <input type="password" id="password" name="password" minlength="8" maxlength="128" required>
+        </div>
+        <button type="submit">Sign up</button>
     </form>
 
-    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
-
-</body>
-</html>
+    <p class="muted">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+</div>
+{% endblock %}

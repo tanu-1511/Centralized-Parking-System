@@ -1,67 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facilities | Centralized Parking Management</title>
-</head>
+{% extends "base.html" %}
+{% block title %}Facilities{% endblock %}
+{% block content %}
+<h1>Parking facilities</h1>
 
-<body>
+{% if facilities %}
+<table>
+    <tr><th>Name</th><th>City</th><th>Status</th><th></th></tr>
+    {% for f in facilities %}
+    <tr>
+        <td>{{ f.name }}</td>
+        <td>{{ f.city }}</td>
+        <td>{{ f.status }}</td>
+        <td><a href="{{ url_for('facilities.facility_detail', facility_id=f.facility_id) }}">View</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p class="muted">No facilities yet.</p>
+{% endif %}
 
-    <h1>Parking Facilities</h1>
-
-    {% include "_flashes.html" %}
-
-    {% if facilities %}
-    <table>
-        <tr><th>Name</th><th>City</th><th>Status</th><th></th></tr>
-        {% for f in facilities %}
-        <tr>
-            <td>{{ f.name }}</td>
-            <td>{{ f.city }}</td>
-            <td>{{ f.status }}</td>
-            <td><a href="{{ url_for('facilities.facility_detail', facility_id=f.facility_id) }}">View</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <p>No facilities yet.</p>
-    {% endif %}
-
-    {% if user.role == 'admin' %}
-    <h2>Add a facility</h2>
-    <form method="POST" action="{{ url_for('facilities.create_facility') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-        <label for="name">Name:</label>
+{% if user.role == 'admin' %}
+<h2>Add a facility</h2>
+<form method="POST" action="{{ url_for('facilities.create_facility') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="field">
+        <label for="name">Name</label>
         <input type="text" id="name" name="name" maxlength="150" required>
-
-        <br><br>
-
-        <label for="address">Address:</label>
+    </div>
+    <div class="field">
+        <label for="address">Address</label>
         <input type="text" id="address" name="address" maxlength="255" required>
-
-        <br><br>
-
-        <label for="city">City:</label>
+    </div>
+    <div class="field">
+        <label for="city">City</label>
         <input type="text" id="city" name="city" maxlength="100" required>
-
-        <br><br>
-
-        <label for="status">Status:</label>
+    </div>
+    <div class="field">
+        <label for="status">Status</label>
         <select id="status" name="status">
             {% for s in statuses %}
             <option value="{{ s }}">{{ s }}</option>
             {% endfor %}
         </select>
-
-        <br><br>
-
-        <button type="submit">Create facility</button>
-    </form>
-    {% endif %}
-
-    <p><a href="{{ url_for('main.dashboard') }}">Back to dashboard</a></p>
-
-</body>
-</html>
+    </div>
+    <button type="submit">Create facility</button>
+</form>
+{% endif %}
+{% endblock %}

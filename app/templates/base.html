@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | Parking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head %}{% endblock %}
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                if (saved === 'light' || saved === 'dark') {
+                    document.documentElement.dataset.theme = saved;
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body>
+
+<header class="site">
+    <a class="brand" href="{{ url_for('main.home') }}">Centralized Parking</a>
+    <nav>
+        {% if user %}
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('facilities.list_facilities') }}">Facilities</a>
+        <a href="{{ url_for('vehicles.list_vehicles') }}">Vehicles</a>
+        <a href="{{ url_for('reservations.new_reservation') }}">Book</a>
+        <a href="{{ url_for('reservations.my_reservations') }}">Reservations</a>
+        <a href="{{ url_for('parking_sessions.my_history') }}">History</a>
+        <a href="{{ url_for('parking_sessions.vehicle_locator') }}">Find my car</a>
+        {% if user.role == 'admin' %}<a href="{{ url_for('facilities.manage_users') }}">Users</a>{% endif %}
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="link">Logout</button>
+        </form>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        <a href="{{ url_for('auth.signup') }}">Sign up</a>
+        {% endif %}
+        <button type="button" class="theme-toggle" id="theme-toggle">Black / white</button>
+    </nav>
+</header>
+
+<main class="container">
+    {% include "_flashes.html" %}
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+    (function () {
+        var root = document.documentElement;
+        function current() {
+            if (root.dataset.theme) return root.dataset.theme;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+            var next = current() === 'dark' ? 'light' : 'dark';
+            root.dataset.theme = next;
+            try { localStorage.setItem('theme', next); } catch (e) {}
+        });
+    })();
+</script>
+</body>
+</html>

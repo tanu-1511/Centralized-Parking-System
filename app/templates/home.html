@@ -1,29 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centralized Parking Management</title>
-</head>
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Centralized Parking Management</h1>
+<p class="muted">Find, reserve, and manage parking from one platform.</p>
 
-<body>
-
-    <h1>Centralized Parking Management System</h1>
-
-    <p>
-        Find, reserve, and manage parking from one centralized platform.
-    </p>
-
-    {% if user %}
-    <p>Signed in as {{ user.username }}.</p>
-    <form method="POST" action="{{ url_for('auth.logout') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit">Logout</button>
-    </form>
-    {% else %}
-    <a href="{{ url_for('auth.login') }}">Login</a>
-    <a href="{{ url_for('auth.signup') }}">Sign Up</a>
-    {% endif %}
-
-</body>
-</html>
+{% if user %}
+<p>Signed in as <strong>{{ user.username }}</strong>.</p>
+<p><a class="btn" href="{{ url_for('main.dashboard') }}">Go to dashboard</a></p>
+{% else %}
+<p>
+    <a class="btn" href="{{ url_for('auth.login') }}">Login</a>
+    <a class="btn outline" href="{{ url_for('auth.signup') }}">Sign up</a>
+</p>
+{% endif %}
+{% endblock %}
