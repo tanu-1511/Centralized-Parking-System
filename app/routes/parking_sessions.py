@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 from datetime import datetime
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -47,6 +48,17 @@ def _open_session_for_vehicle(vehicle_id):
     ).first()
 
 
+def _duration_minutes(parking):
+    """Minutes between entry and exit, or None while the car is still parked."""
+    if parking.exit_time is None:
+        return None
+    return round((parking.exit_time - parking.entry_time).total_seconds() / 60)
+
+
+def _location_label(slot):
+    return f"{slot.floor.facility.name} \u00b7 floor {slot.floor.floor_number} \u00b7 {slot.slot_number}"
+
+
 @parking_sessions.route("/facilities/<int:facility_id>/sessions")
 @login_required
 def facility_sessions(facility_id):
@@ -79,7 +91,7 @@ def facility_sessions(facility_id):
         "facility_sessions.html",
         facility=facility,
         active=active,
-        history=history,
+        history_rows=[{"session": p, "minutes": _duration_minutes(p)} for p in history],
         open_slots=sorted(open_slots, key=lambda s: (s.floor.floor_number, s.slot_number)),
         user=user,
         csrf_token=csrf_token(),
@@ -162,3 +174,27 @@ def end_session(facility_id, session_id):
         db.session.commit()
         flash("Parking ended.", "success")
     return redirect(url_for("parking_sessions.facility_sessions", facility_id=facility_id))
+
+
+@parking_sessions.route("/history")
+@login_required
+def my_history():
+    user = current_user()
+    vehicle_ids = [v.vehicle_id for v in Vehicle.query.filter_by(user_id=user.user_id).all()]
+    sessions = []
+    if vehicle_ids:
+        sessions = (
+            ParkingSession.query.filter(ParkingSession.vehicle_id.in_(vehicle_ids))
+            .order_by(ParkingSession.entry_time.desc())
+            .all()
+        )
+    rows = [
+        {
+            "session": p,
+            "location": _location_label(p.slot),
+            "minutes": _duration_minutes(p),
+        }
+        for p in sessions
+    ]
+    top_spots = Counter(row["location"] for row in rows).most_common(3)
+    return render_template("history.html", user=user, rows=rows, top_spots=top_spots)

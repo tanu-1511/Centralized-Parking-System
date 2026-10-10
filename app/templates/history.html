@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking History | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>My Parking History</h1>
+
+    {% if top_spots %}
+    <h2>Most used spots</h2>
+    <ul>
+        {% for location, visits in top_spots %}
+        <li>{{ location }} &middot; {{ visits }} visit{{ 's' if visits != 1 }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Sessions</h2>
+    {% if rows %}
+    <table>
+        <tr><th>Location</th><th>Vehicle</th><th>Entered</th><th>Exited</th><th>Duration</th></tr>
+        {% for row in rows %}
+        {% set p = row.session %}
+        <tr>
+            <td>{{ row.location }}</td>
+            <td>{{ p.vehicle.vehicle_number }}</td>
+            <td>{{ p.entry_time.strftime('%d %b %Y %H:%M') }}</td>
+            <td>{% if p.exit_time %}{{ p.exit_time.strftime('%d %b %Y %H:%M') }}{% else %}still parked{% endif %}</td>
+            <td>{% if row.minutes is not none %}{{ row.minutes }} min{% else %}&ndash;{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No parking sessions yet.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('main.dashboard') }}">Back to dashboard</a></p>
+
+</body>
+</html>
