@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Slot | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>Book a Parking Slot</h1>
+
+    {% include "_flashes.html" %}
+
+    {% if not vehicles %}
+    <p>You need to <a href="{{ url_for('vehicles.list_vehicles') }}">register a vehicle</a> before booking.</p>
+    {% elif not slots %}
+    <p>No parking slots are open for booking right now.</p>
+    {% else %}
+    <form method="POST" action="{{ url_for('reservations.create_reservation') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="vehicle_id">Vehicle:</label>
+        <select id="vehicle_id" name="vehicle_id" required>
+            {% for v in vehicles %}
+            <option value="{{ v.vehicle_id }}">{{ v.vehicle_number }} ({{ v.vehicle_type }})</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="slot_id">Slot:</label>
+        <select id="slot_id" name="slot_id" required>
+            {% for s in slots %}
+            <option value="{{ s.slot_id }}">
+                {{ s.floor.facility.name }} &middot; floor {{ s.floor.floor_number }} &middot; {{ s.slot_number }}
+                {% if s.is_ev_charging %}(EV){% endif %}{% if s.is_accessible %}(accessible){% endif %}
+            </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="start_time">Start:</label>
+        <input type="datetime-local" id="start_time" name="start_time" required>
+
+        <br><br>
+
+        <label for="end_time">End:</label>
+        <input type="datetime-local" id="end_time" name="end_time" required>
+
+        <br><br>
+
+        <label for="reservation_type">Type:</label>
+        <select id="reservation_type" name="reservation_type">
+            {% for t in reservation_types %}
+            <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+        </select>
+
+        <p>Reservations must be between 30 minutes and 12 hours.</p>
+
+        <button type="submit">Book slot</button>
+    </form>
+    {% endif %}
+
+    <p><a href="{{ url_for('reservations.my_reservations') }}">My reservations</a> &middot; <a href="{{ url_for('main.dashboard') }}">Dashboard</a></p>
+
+</body>
+</html>

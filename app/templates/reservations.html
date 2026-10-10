@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reservations | Centralized Parking Management</title>
+</head>
+
+<body>
+
+    <h1>My Reservations</h1>
+
+    {% include "_flashes.html" %}
+
+    {% if reservations %}
+    <table>
+        <tr><th>Slot</th><th>Vehicle</th><th>Start</th><th>End</th><th>Type</th><th>Status</th><th></th></tr>
+        {% for r in reservations %}
+        <tr>
+            <td>{{ r.slot.floor.facility.name }} &middot; floor {{ r.slot.floor.floor_number }} &middot; {{ r.slot.slot_number }}</td>
+            <td>{{ r.vehicle.vehicle_number }}</td>
+            <td>{{ r.start_time.strftime('%d %b %Y %H:%M') }}</td>
+            <td>{{ r.end_time.strftime('%d %b %Y %H:%M') }}</td>
+            <td>{{ r.reservation_type }}</td>
+            <td>{{ r.status }}</td>
+            <td>
+                {% if r.status == 'confirmed' %}
+                <form method="POST" action="{{ url_for('reservations.cancel_reservation', reservation_id=r.reservation_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Cancel</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>You have no reservations yet.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('reservations.new_reservation') }}">Book a slot</a> &middot; <a href="{{ url_for('main.dashboard') }}">Dashboard</a></p>
+
+</body>
+</html>
