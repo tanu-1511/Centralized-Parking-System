@@ -125,7 +125,7 @@ def test_confirmed_reservation_covering_now_marks_reserved(app):
     with app.app_context():
         db.session.add(Reservation(
             user_id=user_id, vehicle_id=vehicle_id, slot_id=slot_id,
-            start_time=datetime(2026, 10, 10, 11, 0), end_time=datetime(2026, 10, 10, 13, 0),
+            start_time=datetime(2026, 10, 10, 11, 50), end_time=datetime(2026, 10, 10, 13, 0),
             reservation_type="hourly", status="confirmed",
         ))
         db.session.commit()
@@ -165,7 +165,7 @@ def test_occupied_takes_priority_over_reserved(app):
         db.session.add(ParkingSession(vehicle_id=vehicle_id, slot_id=slot_id, entry_time=NOW, status="active"))
         db.session.add(Reservation(
             user_id=user_id, vehicle_id=vehicle_id, slot_id=slot_id,
-            start_time=datetime(2026, 10, 10, 11, 0), end_time=datetime(2026, 10, 10, 13, 0),
+            start_time=datetime(2026, 10, 10, 11, 50), end_time=datetime(2026, 10, 10, 13, 0),
             reservation_type="hourly", status="confirmed",
         ))
         db.session.commit()
