@@ -1,5 +1,6 @@
 import os
 import secrets
+
 from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -33,5 +34,9 @@ def create_app(test_config=None):
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
+
+    # Creates any missing tables (existing tables and data are left alone).
+    with app.app_context():
+        db.create_all()
 
     return app
