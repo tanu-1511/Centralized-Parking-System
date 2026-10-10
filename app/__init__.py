@@ -30,10 +30,12 @@ def create_app(test_config=None):
 
     from app.routes.main import main
     from app.routes.auth import auth
+    from app.routes.facilities import facilities
     from app import models
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
+    app.register_blueprint(facilities)
 
     # Creates any missing tables (existing tables and data are left alone).
     with app.app_context():

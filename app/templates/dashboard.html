@@ -12,6 +12,12 @@
 
     <p>Signed in as <strong>{{ user.username }}</strong> ({{ user.role }}).</p>
 
+    <p><a href="{{ url_for('facilities.list_facilities') }}">Parking facilities</a></p>
+
+    {% if user.role == 'admin' %}
+    <p><a href="{{ url_for('facilities.manage_users') }}">Manage user roles</a></p>
+    {% endif %}
+
     <p>Your vehicles and reservations will appear here in later steps.</p>
 
     <form method="POST" action="{{ url_for('auth.logout') }}">
