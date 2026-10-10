@@ -1,7 +1,7 @@
 import secrets
 from functools import wraps
 
-from flask import abort, g, redirect, request, session, url_for
+from flask import abort, redirect, request, session, url_for
 
 
 def csrf_token():
@@ -22,15 +22,19 @@ def require_csrf():
 
 
 def current_user():
-    """Return the signed-in User, or None. Cached for the request."""
+    """Return the signed-in User, or None.
+
+    Looked up on every call rather than cached in flask.g: g can outlive a
+    single request (for example inside a test's app context), which would
+    hand one user's identity to the next request.
+    """
     from app import db
     from app.models import User
 
-    if "user_id" not in session:
+    user_id = session.get("user_id")
+    if user_id is None:
         return None
-    if "current_user" not in g:
-        g.current_user = db.session.get(User, session["user_id"])
-    return g.current_user
+    return db.session.get(User, user_id)
 
 
 def login_required(view):
