@@ -48,12 +48,12 @@ jobs:
 
           echo "Ruff findings: $error_count"
 
-          if [ "$error_count" -gt 1200 ]; then
-            echo "Ruff threshold exceeded: $error_count findings (maximum allowed: 1200)"
+          if [ "$error_count" -gt 100 ]; then
+            echo "Ruff threshold exceeded: $error_count findings (maximum allowed: 100)"
             exit 1
           fi
 
-          echo "Ruff threshold passed: $error_count findings (maximum allowed: 1200)"
+          echo "Ruff threshold passed: $error_count findings (maximum allowed: 100)"
 
   test:
     name: Run tests
