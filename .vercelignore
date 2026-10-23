@@ -1,0 +1,12 @@
+.git
+.github
+tests
+instance
+venv
+.venv
+__pycache__
+.pytest_cache
+*.db
+.env
+requirements-camera.txt
+rois.example.json
