@@ -36,6 +36,7 @@ def create_app(test_config=None):
     from app.routes.parking_sessions import parking_sessions
     from app.routes.analytics import analytics
     from app.routes.detection import detection
+    from app.routes.setup_admin import setup_admin
     from app import models
 
     app.register_blueprint(main)
@@ -46,6 +47,7 @@ def create_app(test_config=None):
     app.register_blueprint(parking_sessions)
     app.register_blueprint(analytics)
     app.register_blueprint(detection)
+    app.register_blueprint(setup_admin)
 
     from app.security import csrf_token, current_user
 

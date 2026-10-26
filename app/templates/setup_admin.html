@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Create admin{% endblock %}
+{% block content %}
+<div class="narrow" style="margin-left: 0;">
+    <h1>Create the first admin</h1>
+    <p class="muted">This page works only while no admin exists and the server has a setup token set.</p>
+
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('setup_admin.setup_form') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="field">
+            <label for="setup_token">Setup token</label>
+            <input type="password" id="setup_token" name="setup_token" required>
+        </div>
+        <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" maxlength="80" required>
+        </div>
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" maxlength="120" required>
+        </div>
+        <div class="field">
+            <label for="password">Password (at least 8 characters)</label>
+            <input type="password" id="password" name="password" minlength="8" maxlength="128" required>
+        </div>
+        <button type="submit">Create admin</button>
+    </form>
+</div>
+{% endblock %}
